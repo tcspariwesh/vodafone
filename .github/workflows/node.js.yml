@@ -24,7 +24,8 @@ jobs:
       working-directory: ./frontend/user-ui
     - run : npm i
       working-directory: ./frontend/user-ui
-  
+     - run : npm i react-scripts
+      working-directory: ./frontend/user-ui
       # working-directory: .
     - run: npm run build --if-present
       working-directory: ./frontend/user-ui
