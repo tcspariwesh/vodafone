@@ -10,7 +10,6 @@ const useTasks = () => {
   const BASE_URL = "http://localhost:3000/tasks/";
   const fetchTasks = async () => {
     const response = await axios.get(BASE_URL);
-
     setTasks(response.data);
   };
 
