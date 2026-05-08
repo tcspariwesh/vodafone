@@ -1,0 +1,61 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    environment:
+      - PORT=8080
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - QUEUE_NAME=jobs
+      - DATA_DIR=/app/data
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+    container_name: worker
+    command: ["npm", "run", "worker"]
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - QUEUE_NAME=jobs
+      - DATA_DIR=/app/data
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+volumes:
+  backend-data:
